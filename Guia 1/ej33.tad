@@ -1,0 +1,87 @@
+TAD persona es ⟨string,nat⟩
+Fin TAD 
+
+TAD CCC
+
+    géneros: ccc
+
+    exporta: ccc, observadores básicos, generadores
+
+    usa: bool, nat, persona, conjunto 
+
+    generadores:
+        crearCCC: conj(persona) maestros → ccc {(∀p:persona)(p∈maestros ⟹L π2(p) = 10)}
+        iniciaCurso: persona p × ccc c -> ccc {π2(p) = 0 ∧ ~(p ∈ integrantes(c)) ∧ ~ deserto(p,c)}
+        proximoNivel: persona tut × persona ap × ccc c → ccc {tutor?(ap,c) = tut}
+        dejaCurso: persona p × ccc c → ccc {p ∈ integrantes(c)}
+
+    observadores básicos:
+        maestros?: ccc → conj(persona)
+        aprendices?: ccc → conj(persona)
+        tutor?: persona p × ccc c → persona {~ p ∈ maestros?(c) ∧ p ∈ aprendices(c)}
+        deserto: persona p × ccc c → bool 
+    otras operaciones:
+        integrantes: ccc → conj(persona)
+        aprendicesT : persona p × conj(persona) × ccc c → conj(persona) {p ∈ integrantes?(c)}
+        asignarTutor : persona × conj(persona) → persona 
+        descendientes : persona p × ccc c → conj(persona) {p ∈ integrantes(c)}
+    axiomas:
+    	maestros?(crearCCC(maestros)) ≡ maestros 
+    	maestros?(iniciaCurso(p,c)) ≡ maestros?(c)
+    	maestros?(proximoNivel(t,p,c)) ≡ if π2(p) + 1 = 10 then ag(p,maestros(c)) else maestros(c) fi
+    	maestros?(dejaCurso(p,c)) ≡ if p ∈ maestros(c) then maestros(c) - {p} else maestros(c) fi
+		aprendices?(crearCCC(maestros)) ≡ vacio
+    	aprendices?(iniciaCurso(p,c)) ≡ ag(p,aprendices(c))
+    	aprendices?(proximoNivel(t,p,c)) ≡ if π1(p) + 1 = 10 then 
+    											aprendices(c) - {p} 
+    										else
+    											 ag(<π0(p),π1(p)+1>, aprendices(c) - {p}) 
+										    fi
+    	aprendices?(dejaCurso(p,c)) ≡ if p ∈ aprendices(c) then aprendices(c) - {p} else aprendices(c) fi
+    	tutor?(p,iniciaCurso(p',c)) ≡ if p = p' then asignarTutor(p,integrantes(c)) else tutor?(p,c)
+    	tutor?(p,proximoNivel(t,p',c)) ≡ if p = p' ∧ π2(p) + 1 = π2(tutor(p,c)) then  
+											asignarTutor(<π0(p),π1(p)+1>,integrantes(c)) 
+    									 else 
+										  	tutor(p,c)
+										 fi
+    	
+    	tutor?(p,dejaCurso(p',c)) ≡ if tutor?(p,c) = p' then 
+										if p'∈ aprendices(c) then 
+											tutor?(p',c)
+										else // cuando es maestro
+											asignarTutor(p,integrantes(c)-{p'})
+									else 
+										tutor?(p,c)
+		deserto?(p,crearCCC(maestros)) ≡ false 
+    	deserto?(p,iniciaCurso(p',c)) ≡ if p = p' then false else deserto(p,c) fi 
+    	deserto?(p,proximoNivel(t,p',c)) ≡ if p = p' then false else deserto(p,c) fi
+    	deserto?(p,dejaCurso(p',c)) ≡ if p = p' then true else deserto(p,c)
+    	asignarTutor(p,c) = if π1(dameUno(c)) > π1(p) then 
+    							dameUno(c)
+    						else
+    							asignarTutor(p,sinUno(c)) 
+    	integrantes(c) ≡ maestros?(c) + aprendices?(c)
+    	aprendicesT(tutor,apren,c) ≡ if esVacia?(apren) then ∅
+					                else if tutor = tutor?(dameUno(apren,c) then 
+					                 	aprendicesT(dameUno(apren),aprendices?(c),c) ∪ (Ag(dameUno(apren), aprendicesT(tutor,sinUno(apren),c))
+					                else 
+						             	aprendicesT(tutor,sinUno(apren),c)
+
+    	descendientes(p,c) ≡ aprendicesT(p,aprendices?(c),c)
+
+Fin TAD
+
+Curso de capacitacion 10 niveles
+Los docentes, son los mismoss que se formaron o se forman en CCC
+
+Empieza con un cjto de maestros carpinteros, q enseñan cualquier curso
+cuando empieza un loco el curso, empieza en nivel 0 y se le asigna un tutor y se convierte en aprendiz de ese tutor
+Cuando el tutor detecta que esta bien el aprendiz, lo pasa de nivel.
+
+La persona debe tener aprendices de niveles superiores, si el aprendiz avanza de nivel y esta al nivel del tutor, se asigna uno nuevo.
+Si el aprendiz llega a nivel 10, entonces ahi pasa a ser parte del conjunto de maestros y es no mas aprendiz.
+Si una persona deja CCC 1) si era aprendiz y tenia aprendices, pasa a ser de estos tutor de la persona q borramos.
+						2) si era maestro, sus aprendices pasan a ser aprendices de otro tutor.
+AL dejar no podes volver a ingresar.
+Otra op que dado un miembro, quienes son los descendientes academicos.
+
